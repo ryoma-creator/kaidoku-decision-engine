@@ -1,9 +1,16 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import * as SecureStore from "expo-secure-store";
+import { Platform } from "react-native";
 import type { UsageData } from "../types";
 
 const USAGE_KEY = "kaidoku_usage";
 const API_KEY_STORE = "openai_api_key";
+
+// ── SecureStore with Web fallback ──
+// expo-secure-store only works on iOS/Android; use AsyncStorage on web
+let SecureStore: typeof import("expo-secure-store") | null = null;
+if (Platform.OS !== "web") {
+  SecureStore = require("expo-secure-store");
+}
 
 // ── Get current YYYY-MM ──
 function getCurrentMonth(): string {
@@ -83,14 +90,27 @@ export function remainingCount(usage: UsageData): number {
 }
 
 // ── Secure API key storage (dev only) ──
+// On native: SecureStore (encrypted keychain)
+// On web: AsyncStorage fallback (dev/preview only)
 export async function saveApiKey(key: string): Promise<void> {
-  await SecureStore.setItemAsync(API_KEY_STORE, key);
+  if (SecureStore) {
+    await SecureStore.setItemAsync(API_KEY_STORE, key);
+  } else {
+    await AsyncStorage.setItem(API_KEY_STORE, key);
+  }
 }
 
 export async function getApiKey(): Promise<string | null> {
-  return SecureStore.getItemAsync(API_KEY_STORE);
+  if (SecureStore) {
+    return SecureStore.getItemAsync(API_KEY_STORE);
+  }
+  return AsyncStorage.getItem(API_KEY_STORE);
 }
 
 export async function deleteApiKey(): Promise<void> {
-  await SecureStore.deleteItemAsync(API_KEY_STORE);
+  if (SecureStore) {
+    await SecureStore.deleteItemAsync(API_KEY_STORE);
+  } else {
+    await AsyncStorage.removeItem(API_KEY_STORE);
+  }
 }
