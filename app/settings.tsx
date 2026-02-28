@@ -11,6 +11,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { Colors } from "../src/constants/colors";
+import { USE_MOCK } from "../src/constants/options";
 import { saveApiKey, getApiKey, deleteApiKey } from "../src/services/storage";
 import { useUsage } from "../src/hooks/useUsage";
 import {
@@ -126,6 +127,19 @@ export default function SettingsScreen() {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
+        {/* Mock Mode Banner */}
+        {USE_MOCK && (
+          <View style={styles.mockBanner}>
+            <Text style={styles.mockBannerIcon}>🧪</Text>
+            <View style={styles.mockBannerContent}>
+              <Text style={styles.mockBannerTitle}>Mock Mode: ON</Text>
+              <Text style={styles.mockBannerDesc}>
+                API課金なし — デモデータで動作中
+              </Text>
+            </View>
+          </View>
+        )}
+
         {/* Usage Status */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>📊 利用状況</Text>
@@ -435,5 +449,34 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 22,
     marginTop: 8,
+  },
+
+  // ── Mock mode banner ──
+  mockBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(255, 165, 2, 0.12)",
+    borderRadius: 14,
+    padding: 16,
+    marginBottom: 24,
+    borderWidth: 1.5,
+    borderColor: Colors.warning,
+    gap: 12,
+  },
+  mockBannerIcon: {
+    fontSize: 28,
+  },
+  mockBannerContent: {
+    flex: 1,
+  },
+  mockBannerTitle: {
+    color: Colors.warning,
+    fontSize: 16,
+    fontWeight: "800",
+  },
+  mockBannerDesc: {
+    color: Colors.textSecondary,
+    fontSize: 13,
+    marginTop: 2,
   },
 });

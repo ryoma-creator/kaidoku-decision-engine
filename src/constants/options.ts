@@ -51,3 +51,8 @@ export const TONES: { id: Tone; label: string; emoji: string }[] = [
 export const FREE_LIMIT = 5;
 export const PAID_MONTHLY_LIMIT = 200;
 export const IAP_PRODUCT_ID = "kaidoku_unlock_480";
+
+// ── Mock mode ──
+// true = API課金ゼロ、モックデータで成功体験デモ
+// false = 本番OpenAI API呼び出し
+export const USE_MOCK = true;

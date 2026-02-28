@@ -1,5 +1,7 @@
 import { SYSTEM_PROMPT, buildUserPrompt } from "../constants/prompt";
 import { getApiKey } from "./storage";
+import { USE_MOCK } from "../constants/options";
+import { generateReplyMock } from "./mockData";
 import type { AIResponse, ComposeFormData } from "../types";
 
 const OPENAI_URL = "https://api.openai.com/v1/responses";
@@ -32,10 +34,17 @@ async function fetchWithTimeout(
   }
 }
 
-// ── Call OpenAI Responses API ──
+// ── Call OpenAI Responses API (or mock) ──
 export async function generateReply(
   form: ComposeFormData
 ): Promise<AIResponse> {
+  // ── Mock mode: no API call ──
+  if (USE_MOCK) {
+    // Simulate network delay for realism
+    await new Promise((resolve) => setTimeout(resolve, 1200 + Math.random() * 800));
+    return generateReplyMock(form);
+  }
+
   const apiKey = await getApiKey();
   if (!apiKey) {
     throw new OpenAIError(

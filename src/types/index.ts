@@ -12,6 +12,10 @@ export interface AIResponse {
   backup_reply: string;
   ng_reply: string;
   next_step: string;
+  // ── Success story fields (mock / enhanced) ──
+  why_it_works?: string;        // 短い理由（心理ポイント）
+  expected_reaction?: string;   // 相手の返信例（成功演出）
+  reaction_followup?: string;   // その後の展開
 }
 
 // ── Compose form data ──

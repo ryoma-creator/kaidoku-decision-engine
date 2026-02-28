@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -14,15 +14,21 @@ import {
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Colors } from "../src/constants/colors";
-import { RELATIONSHIPS, TONES } from "../src/constants/options";
+import { RELATIONSHIPS, TONES, USE_MOCK } from "../src/constants/options";
 import { useUsage } from "../src/hooks/useUsage";
 import { generateReply } from "../src/services/openai";
+import { DEMO_PRESETS } from "../src/services/mockData";
 import type { Relationship, Tone, Situation } from "../src/types";
 
 export default function ComposeScreen() {
   const router = useRouter();
-  const params = useLocalSearchParams<{ situation: Situation }>();
+  const params = useLocalSearchParams<{
+    situation: Situation;
+    demo?: string;
+    demoIndex?: string;
+  }>();
   const situation = params.situation ?? "既読スルー";
+  const isDemo = params.demo === "true";
   const { canUse, increment, remaining, usage } = useUsage();
 
   // ── Form state ──
@@ -31,6 +37,19 @@ export default function ComposeScreen() {
   const [tone, setTone] = useState<Tone>("さりげなく");
   const [hours, setHours] = useState(12);
   const [loading, setLoading] = useState(false);
+
+  // ── Auto-fill from demo preset ──
+  useEffect(() => {
+    if (isDemo && params.demoIndex) {
+      const preset = DEMO_PRESETS[Number(params.demoIndex)];
+      if (preset) {
+        setConversation(preset.conversation);
+        setRelationship(preset.relationship);
+        setTone(preset.tone);
+        setHours(preset.hoursSinceRead);
+      }
+    }
+  }, [isDemo, params.demoIndex]);
 
   const showHoursSlider = situation === "既読スルー";
 
@@ -103,9 +122,25 @@ export default function ComposeScreen() {
           keyboardShouldPersistTaps="handled"
         >
           {/* Situation badge */}
-          <View style={styles.situationBadge}>
-            <Text style={styles.situationText}>📌 {situation}</Text>
+          <View style={styles.badgeRow}>
+            <View style={styles.situationBadge}>
+              <Text style={styles.situationText}>📌 {situation}</Text>
+            </View>
+            {isDemo && (
+              <View style={styles.demoBadge}>
+                <Text style={styles.demoBadgeText}>🎬 DEMO</Text>
+              </View>
+            )}
           </View>
+
+          {/* Demo hint */}
+          {isDemo && (
+            <View style={styles.demoHint}>
+              <Text style={styles.demoHintText}>
+                ✨ サンプル会話が自動入力済み！下の「分析する」を押すだけ
+              </Text>
+            </View>
+          )}
 
           {/* Conversation input */}
           <View style={styles.section}>
@@ -247,13 +282,17 @@ const styles = StyleSheet.create({
     padding: 20,
     paddingBottom: 40,
   },
+  badgeRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: 12,
+  },
   situationBadge: {
-    alignSelf: "flex-start",
     backgroundColor: Colors.bgCard,
     borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 8,
-    marginBottom: 20,
     borderWidth: 1,
     borderColor: Colors.accent,
   },
@@ -261,6 +300,33 @@ const styles = StyleSheet.create({
     color: Colors.accent,
     fontSize: 15,
     fontWeight: "700",
+  },
+  demoBadge: {
+    backgroundColor: "rgba(255, 165, 2, 0.2)",
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderWidth: 1,
+    borderColor: Colors.warning,
+  },
+  demoBadgeText: {
+    color: Colors.warning,
+    fontSize: 12,
+    fontWeight: "800",
+  },
+  demoHint: {
+    backgroundColor: "rgba(6, 199, 85, 0.1)",
+    borderRadius: 10,
+    padding: 12,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: "rgba(6, 199, 85, 0.25)",
+  },
+  demoHintText: {
+    color: Colors.accent,
+    fontSize: 13,
+    fontWeight: "600",
+    textAlign: "center",
   },
   section: {
     marginBottom: 22,
