@@ -1,0 +1,31 @@
+---
+alwaysApply: true
+---
+
+# KaidokuAvoid AI Project Guide
+
+## Architecture
+- Framework: Expo SDK 52 plus React Native (TypeScript)
+- Navigation: Expo Router (file-based, in app/ directory)
+- State: Local via hooks plus AsyncStorage
+- Styling: StyleSheet (dark theme, LINE-inspired palette)
+
+## Key Files
+- app/_layout.tsx: Root Stack navigator
+- app/index.tsx: Home situation picker
+- app/compose.tsx: Compose conversation input and options
+- app/result.tsx: Result AI response with chat bubbles
+- app/settings.tsx: Settings API key, IAP, usage
+
+## Services
+- src/services/openai.ts: OpenAI Responses API wrapper (gpt-4o-mini)
+- src/services/storage.ts: AsyncStorage plus SecureStore helpers
+- src/services/iap.ts: In-App Purchase (react-native-iap)
+- src/services/aiCheck.ts: AI smell check heuristics
+
+## Rules
+- All UI text in Japanese
+- Reply limits: best 60 chars, backup 70 chars, NG 50 chars
+- Free: 5 lifetime uses; Paid: 200/month (reset on calendar month)
+- API key stored in SecureStore (dev only); proxy planned for production
+- No photos, icons or emojis only
