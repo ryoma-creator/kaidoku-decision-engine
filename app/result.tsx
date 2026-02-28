@@ -77,11 +77,17 @@ export default function ResultScreen() {
       .join("\n");
   };
 
+  const hapticSuccess = () => {
+    if (Platform.OS !== "web") {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    }
+  };
+
   const handleShare = async () => {
     const text = buildShareText();
     if (Platform.OS === "web") {
       await Clipboard.setStringAsync(text);
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      hapticSuccess();
       alert("シェア用テキストをコピーしました！");
     } else {
       await Share.share({ message: text });
@@ -91,7 +97,7 @@ export default function ResultScreen() {
   const handleCopyAll = async () => {
     const text = buildShareText();
     await Clipboard.setStringAsync(text);
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    hapticSuccess();
   };
 
   if (!result) {
