@@ -137,7 +137,7 @@ export default function ComposeScreen() {
           {isDemo && (
             <View style={styles.demoHint}>
               <Text style={styles.demoHintText}>
-                ✨ サンプル会話が自動入力済み！下の「分析する」を押すだけ
+                ✨ サンプル会話が自動入力済み！下の「戦略を立てる」を押すだけ
               </Text>
             </View>
           )}
@@ -256,7 +256,7 @@ export default function ComposeScreen() {
                 <Text style={styles.generateText}>  分析中...</Text>
               </View>
             ) : (
-              <Text style={styles.generateText}>🔍 分析する</Text>
+              <Text style={styles.generateText}>🧠 戦略を立てる</Text>
             )}
           </TouchableOpacity>
 

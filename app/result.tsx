@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -8,6 +8,8 @@ import {
   SafeAreaView,
   Share,
   Platform,
+  LayoutAnimation,
+  UIManager,
 } from "react-native";
 import * as Clipboard from "expo-clipboard";
 import * as Haptics from "expo-haptics";
@@ -18,9 +20,18 @@ import { checkAISmell } from "../src/services/aiCheck";
 import { USE_MOCK } from "../src/constants/options";
 import type { AIResponse } from "../src/types";
 
+// Enable LayoutAnimation on Android
+if (
+  Platform.OS === "android" &&
+  UIManager.setLayoutAnimationEnabledExperimental
+) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
+
 export default function ResultScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{ data: string; situation: string }>();
+  const [insightOpen, setInsightOpen] = useState(false);
 
   const result: AIResponse | null = useMemo(() => {
     try {
@@ -35,9 +46,15 @@ export default function ResultScreen() {
     return checkAISmell(result);
   }, [result]);
 
+  const toggleInsight = () => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setInsightOpen((prev) => !prev);
+  };
+
   // ── Share text builder ──
   const buildShareText = () => {
     if (!result) return "";
+    const insight = result.insight;
     return [
       `📱 KaidokuAvoid｜${params.situation}`,
       ``,
@@ -47,11 +64,14 @@ export default function ResultScreen() {
       `「${result.best_reply}」`,
       ``,
       result.why_it_works ? `💡 ${result.why_it_works}` : "",
+      insight
+        ? `\n🧠 戦略: ${insight.strategy_used}\n   原則: ${insight.psychology_principle}`
+        : "",
       result.expected_reaction
         ? `\n📩 相手の反応:\n「${result.expected_reaction}」`
         : "",
       ``,
-      `#KaidokuAvoid #既読スルー対策`,
+      `#KaidokuAvoid #会話を整えるAI`,
     ]
       .filter(Boolean)
       .join("\n");
@@ -93,6 +113,7 @@ export default function ResultScreen() {
   const isWait = result.decision === "待つ";
   const hasSuccessStory =
     result.why_it_works || result.expected_reaction || result.reaction_followup;
+  const insight = result.insight;
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -139,14 +160,95 @@ export default function ResultScreen() {
           variant="good"
         />
 
-        {/* ━━━━━━ Why it works ━━━━━━ */}
+        {/* ━━━━━━ Why it works (short) ━━━━━━ */}
         {result.why_it_works && (
           <View style={styles.whyCard}>
             <View style={styles.whyHeader}>
-              <Text style={styles.whyIcon}>🧠</Text>
+              <Text style={styles.whyIcon}>💡</Text>
               <Text style={styles.whyLabel}>この一手の狙い</Text>
             </View>
             <Text style={styles.whyText}>{result.why_it_works}</Text>
+          </View>
+        )}
+
+        {/* ━━━━━━ 🧠 Communication Insight (Collapsible) ━━━━━━ */}
+        {insight && (
+          <View style={styles.insightSection}>
+            <TouchableOpacity
+              style={styles.insightHeader}
+              onPress={toggleInsight}
+              activeOpacity={0.7}
+            >
+              <View style={styles.insightHeaderLeft}>
+                <Text style={styles.insightHeaderIcon}>🧠</Text>
+                <View>
+                  <Text style={styles.insightHeaderTitle}>
+                    Communication Insight
+                  </Text>
+                  <Text style={styles.insightHeaderPrinciple}>
+                    {insight.psychology_principle}
+                  </Text>
+                </View>
+              </View>
+              <Text style={styles.insightChevron}>
+                {insightOpen ? "▲" : "▼"}
+              </Text>
+            </TouchableOpacity>
+
+            {insightOpen && (
+              <View style={styles.insightBody}>
+                {/* Strategy used */}
+                <View style={styles.insightRow}>
+                  <Text style={styles.insightLabel}>🎯 戦略</Text>
+                  <Text style={styles.insightValue}>
+                    {insight.strategy_used}
+                  </Text>
+                </View>
+
+                {/* Psychology principle */}
+                <View style={styles.insightRow}>
+                  <Text style={styles.insightLabel}>📚 原則</Text>
+                  <Text style={styles.insightValue}>
+                    {insight.psychology_principle}
+                  </Text>
+                </View>
+
+                {/* Why it works (detailed) */}
+                <View style={styles.insightDetailCard}>
+                  <Text style={styles.insightDetailLabel}>
+                    なぜ効果的か
+                  </Text>
+                  <Text style={styles.insightDetailText}>
+                    {insight.why_it_works}
+                  </Text>
+                </View>
+
+                {/* Risk warning */}
+                <View style={styles.insightRiskCard}>
+                  <Text style={styles.insightRiskLabel}>
+                    ⚠️ 使い方を間違えると
+                  </Text>
+                  <Text style={styles.insightRiskText}>
+                    {insight.risk_if_wrong}
+                  </Text>
+                </View>
+
+                {/* When NOT to use */}
+                <View style={styles.insightNotUseCard}>
+                  <Text style={styles.insightNotUseLabel}>
+                    🚫 この戦略を使わない方がいい場面
+                  </Text>
+                  <Text style={styles.insightNotUseText}>
+                    {insight.when_not_to_use}
+                  </Text>
+                </View>
+
+                {/* Source note */}
+                <Text style={styles.insightSourceNote}>
+                  ※ {insight.source_note}
+                </Text>
+              </View>
+            )}
           </View>
         )}
 
@@ -172,7 +274,7 @@ export default function ResultScreen() {
           <View style={styles.successSection}>
             <View style={styles.successDivider}>
               <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>📩 送ったらこうなる</Text>
+              <Text style={styles.dividerText}>📩 この返信を送ったら</Text>
               <View style={styles.dividerLine} />
             </View>
 
@@ -345,7 +447,7 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
 
-  // ── Why it works card ──
+  // ── Why it works card (short) ──
   whyCard: {
     backgroundColor: "rgba(52, 152, 219, 0.1)",
     borderRadius: 14,
@@ -372,6 +474,129 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
     fontSize: 14,
     lineHeight: 22,
+  },
+
+  // ── 🧠 Communication Insight (collapsible) ──
+  insightSection: {
+    marginBottom: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "rgba(155, 89, 182, 0.35)",
+    overflow: "hidden",
+  },
+  insightHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: "rgba(155, 89, 182, 0.12)",
+    padding: 16,
+  },
+  insightHeaderLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    flex: 1,
+  },
+  insightHeaderIcon: {
+    fontSize: 22,
+  },
+  insightHeaderTitle: {
+    color: Colors.textPrimary,
+    fontSize: 15,
+    fontWeight: "700",
+  },
+  insightHeaderPrinciple: {
+    color: "rgba(155, 89, 182, 1)",
+    fontSize: 12,
+    fontWeight: "600",
+    marginTop: 1,
+  },
+  insightChevron: {
+    color: Colors.textMuted,
+    fontSize: 12,
+    marginLeft: 8,
+  },
+  insightBody: {
+    backgroundColor: "rgba(155, 89, 182, 0.06)",
+    padding: 16,
+    gap: 14,
+  },
+  insightRow: {
+    flexDirection: "row",
+    gap: 8,
+    alignItems: "flex-start",
+  },
+  insightLabel: {
+    color: Colors.textMuted,
+    fontSize: 13,
+    fontWeight: "600",
+    minWidth: 54,
+  },
+  insightValue: {
+    color: Colors.textPrimary,
+    fontSize: 14,
+    fontWeight: "600",
+    flex: 1,
+  },
+  insightDetailCard: {
+    backgroundColor: "rgba(52, 152, 219, 0.08)",
+    borderRadius: 12,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: "rgba(52, 152, 219, 0.2)",
+  },
+  insightDetailLabel: {
+    color: Colors.info,
+    fontSize: 13,
+    fontWeight: "700",
+    marginBottom: 6,
+  },
+  insightDetailText: {
+    color: Colors.textPrimary,
+    fontSize: 14,
+    lineHeight: 22,
+  },
+  insightRiskCard: {
+    backgroundColor: "rgba(255, 165, 2, 0.08)",
+    borderRadius: 12,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: "rgba(255, 165, 2, 0.2)",
+  },
+  insightRiskLabel: {
+    color: Colors.warning,
+    fontSize: 13,
+    fontWeight: "700",
+    marginBottom: 6,
+  },
+  insightRiskText: {
+    color: Colors.textPrimary,
+    fontSize: 14,
+    lineHeight: 22,
+  },
+  insightNotUseCard: {
+    backgroundColor: "rgba(231, 76, 60, 0.08)",
+    borderRadius: 12,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: "rgba(231, 76, 60, 0.2)",
+  },
+  insightNotUseLabel: {
+    color: Colors.danger,
+    fontSize: 13,
+    fontWeight: "700",
+    marginBottom: 6,
+  },
+  insightNotUseText: {
+    color: Colors.textPrimary,
+    fontSize: 14,
+    lineHeight: 22,
+  },
+  insightSourceNote: {
+    color: Colors.textMuted,
+    fontSize: 11,
+    fontStyle: "italic",
+    textAlign: "right",
   },
 
   // ── Success story section ──

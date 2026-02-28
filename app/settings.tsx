@@ -270,10 +270,12 @@ export default function SettingsScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>ℹ️ このアプリについて</Text>
           <Text style={styles.aboutText}>
-            KaidokuAvoidは、メッセージの返信を自然に、AIっぽくならないように
-            サポートするアプリです。{"\n\n"}
-            ※ 生成されたメッセージはあくまで参考です。
-            ご自身の判断でお使いください。
+            KaidokuAvoidは「会話を整えるAI」です。{"\n"}
+            コミュニケーション研究や行動心理学の知見をもとに、
+            自然な会話の流れをサポートします。{"\n\n"}
+            ※ 提案はあくまで参考です。
+            最終的な判断はご自身で行ってください。{"\n"}
+            ※ 統計や研究データを偽って表示することはありません。
           </Text>
         </View>
       </ScrollView>

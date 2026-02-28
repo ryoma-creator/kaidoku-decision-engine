@@ -69,7 +69,7 @@ export default function HomeScreen() {
             </TouchableOpacity>
           </View>
           <Text style={styles.subtitle}>
-            シチュエーションを選んで{"\n"}最適な返信を考えよう
+            シチュエーションを選んで{"\n"}会話の流れを整えよう
           </Text>
           <View style={styles.badgeRow}>
             <UsageBadge
@@ -112,7 +112,7 @@ export default function HomeScreen() {
 
         {/* Footer hint */}
         <Text style={styles.footerHint}>
-          💡 自然な返信で、気持ちをうまく伝えよう
+          💡 会話を整えて、自然なコミュニケーションを
         </Text>
       </ScrollView>
 

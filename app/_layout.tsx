@@ -26,21 +26,21 @@ export default function RootLayout() {
         <Stack.Screen
           name="index"
           options={{
-            title: "KaidokuAvoid",
+            title: "会話を整えるAI",
             headerLargeTitle: true,
           }}
         />
         <Stack.Screen
           name="compose"
           options={{
-            title: "メッセージ作成",
+            title: "会話を整理する",
             presentation: "card",
           }}
         />
         <Stack.Screen
           name="result"
           options={{
-            title: "分析結果",
+            title: "戦略レポート",
             presentation: "card",
           }}
         />
